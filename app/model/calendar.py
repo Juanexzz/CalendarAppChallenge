@@ -42,3 +42,39 @@ class Event:
                 f"Time: {self.start_at} - {self.end_at}")
 
 
+class Day:
+    def __init__(self, date_: date):
+        self.date_ = date_
+        self.slots: Dict[time, str | None] = {}
+        self._init_slots()
+
+    def _init_slots(self):
+        from datetime import time, timedelta
+        t = time(0, 0)
+        delta = timedelta(minutes=15)
+        while t < time(23, 45):
+            self.slots[t] = None
+            t = (datetime.combine(date.today(), t) + delta).time()
+
+    def add_event(self, event_id: str, start_at: time, end_at: time):
+        current_time = start_at
+        while current_time < end_at:
+            if self.slots.get(current_time):
+                slot_not_available_error()
+            self.slots[current_time] = event_id
+            current_time = (datetime.combine(date.today(), current_time) + timedelta(minutes=15)).time()
+
+    def delete_event(self, event_id: str):
+        deleted = False
+        for slot, saved_id in self.slots.items():
+            if saved_id == event_id:
+                self.slots[slot] = None
+                deleted = True
+        if not deleted:
+            event_not_found_error()
+
+    def update_event(self, event_id: str, start_at: time, end_at: time):
+        self.delete_event(event_id)
+        self.add_event(event_id, start_at, end_at)
+
+
